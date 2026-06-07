@@ -5,3 +5,6 @@ __pycache__/
 *.csv
 rules/
 results/
+*.json
+*.jsonl
+*.md
