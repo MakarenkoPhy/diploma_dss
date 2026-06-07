@@ -1,0 +1,4 @@
+anthropic>=0.34
+openai>=1.40
+streamlit>=1.30
+pandas>=2.0
