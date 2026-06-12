@@ -31,14 +31,34 @@ import time
 # ---------------------------------------------------------------------------
 
 def build_decision_rule(
-    llm: LLMClient,
+    llm: LLMClient | None = None,
     *,
     progress=None,
     notes: str = "",
+    decision_maker=None,
+    provider: str | None = None,
+    model: str | None = None,
 ) -> DecisionRule:
-    """Построить решающее правило, используя LLM как ЛПР."""
+    """Построить решающее правило методом ЦИКЛ.
+
+    По умолчанию (передан `llm`) в роли ЛПР выступает LLM.
+    Если передан готовый `decision_maker` (например, человек с подсказками —
+    `AssistedHumanDecisionMaker`), используется он; в этом случае метаданные
+    провайдера/модели берутся из `provider`/`model`.
+    """
+    if decision_maker is None and llm is None:
+        raise ValueError("Нужно передать либо llm, либо decision_maker.")
+
     t0 = time.time()
-    dm = LLMDecisionMaker(llm)
+    if decision_maker is None:
+        dm = LLMDecisionMaker(llm)
+        prov = provider or llm.name
+        mod = model or getattr(llm, "model", "n/a")
+    else:
+        dm = decision_maker
+        prov = provider or "human"
+        mod = model or "human"
+
     algo = TsiklAlgorithm(
         omega=omega(),
         M=num_classes(),
@@ -51,17 +71,17 @@ def build_decision_rule(
     rule = DecisionRule(
         table=table,
         metadata=make_metadata(
-            provider=llm.name,
-            model=getattr(llm, "model", "n/a"),
+            provider=prov,
+            model=mod,
             queries=len(algo.state.query_log),
             notes=notes,
             contradiction_count=algo.state.contradiction_count,
             R_iterations=algo.state.R_iterations,
             clamp_count=algo.state.clamp_count,
-            parse_retry_count=dm.parse_retry_count,
+            parse_retry_count=getattr(dm, "parse_retry_count", 0),
             build_time_sec=elapsed,
         ),
-        history=dm.history,
+        history=getattr(dm, "history", []),
     )
     return rule
 

@@ -16,6 +16,9 @@ from .llm_client import (
 )
 from .tsikl import TsiklAlgorithm, DecisionMaker, TsiklState
 from .decision_maker import LLMDecisionMaker, build_dm_system_prompt
+from .human_dm import (
+    AssistedHumanDecisionMaker, ReferenceBank, RefObject, resolve_result_paths,
+)
 from .assessor import (
     LLMAssessor, ColumnDescription, AssessmentResult,
     build_assessor_system_prompt,
@@ -33,6 +36,8 @@ __all__ = [
     "ManualClient", "make_client",
     "TsiklAlgorithm", "DecisionMaker", "TsiklState",
     "LLMDecisionMaker", "build_dm_system_prompt",
+    "AssistedHumanDecisionMaker", "ReferenceBank", "RefObject",
+    "resolve_result_paths",
     "LLMAssessor", "ColumnDescription", "AssessmentResult",
     "build_assessor_system_prompt",
     "DecisionRule", "BuildMetadata", "make_metadata",

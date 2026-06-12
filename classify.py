@@ -162,8 +162,8 @@ def main():
         "--output", default=None,
         help=(
             "CSV с результатами. "
-            "По умолчанию: results/results_<provider>_<input_stem>.csv "
-            "(в пакетном режиме) или results/results_<provider>.csv (в одиночном)"
+            "По умолчанию: results/results_<provider>_<model>_<input_stem>.csv "
+            "(в пакетном режиме) или results/results_<provider>_<model>.csv (в одиночном)"
         ),
     )
     parser.add_argument("--field", help="Имя поля")
@@ -176,7 +176,7 @@ def main():
         "--log", default=None,
         help=(
             "JSONL-файл для дозаписи полных результатов. "
-            "По умолчанию: results/log_<provider>_<input_stem>.jsonl (пакетный режим)"
+            "По умолчанию: results/log_<provider>_<model>_<input_stem>.jsonl (пакетный режим)"
         ),
     )
     args = parser.parse_args()
@@ -193,6 +193,9 @@ def main():
     llm = make_client(args.provider, **client_kwargs)
     assessor = LLMAssessor(llm)
 
+    # Тег модели для имён файлов (по аналогии с build_rule.py)
+    model_tag = getattr(llm, "model", "model").replace("/", "-").replace(":", "-")
+
     # Пакетный режим
     if args.input:
         in_path = Path(args.input)
@@ -202,14 +205,14 @@ def main():
             out_path = Path(args.output)
         else:
             stem = in_path.stem
-            out_path = RESULTS_DIR / f"results_{llm.name}_{stem}.csv"
+            out_path = RESULTS_DIR / f"results_{llm.name}_{model_tag}_{stem}.csv"
 
         # Определяем путь лога
         if args.log:
             log_path = Path(args.log)
         else:
             stem = in_path.stem
-            log_path = RESULTS_DIR / f"log_{llm.name}_{stem}.jsonl"
+            log_path = RESULTS_DIR / f"log_{llm.name}_{model_tag}_{stem}.jsonl"
 
         # Создаём папки
         out_path.parent.mkdir(parents=True, exist_ok=True)
