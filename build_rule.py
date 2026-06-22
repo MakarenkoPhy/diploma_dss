@@ -44,6 +44,21 @@ def main():
         ),
     )
     parser.add_argument(
+        "--include", default="",
+        help=(
+            "Только для human: оставить лишь файлы, в имени которых есть любая из "
+            "перечисленных через запятую подстрок (например: sonnet,gpt-4o,v4-pro)."
+        ),
+    )
+    parser.add_argument(
+        "--exclude", default="",
+        help=(
+            "Только для human: исключить файлы, в имени которых есть любая из "
+            "перечисленных через запятую подстрок (например: haiku,mini,flash). "
+            "Применяется после --include."
+        ),
+    )
+    parser.add_argument(
         "--threshold", type=int, default=2,
         help="Только для human: порог L1-расстояния для «близких» объектов (по умолчанию 2).",
     )
@@ -64,6 +79,15 @@ def main():
         )
 
         paths = resolve_result_paths(args.results)
+
+        # Фильтрация по подстрокам в имени файла (выбор моделей)
+        inc = [s.strip() for s in args.include.split(",") if s.strip()]
+        exc = [s.strip() for s in args.exclude.split(",") if s.strip()]
+        if inc:
+            paths = [p for p in paths if any(tok in p.name for tok in inc)]
+        if exc:
+            paths = [p for p in paths if not any(tok in p.name for tok in exc)]
+
         bank = ReferenceBank(paths)
 
         out_path = Path(args.output) if args.output else RULES_DIR / "rule_human.json"
